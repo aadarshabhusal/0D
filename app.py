@@ -39,10 +39,10 @@ def login():
         return redirect(url_for('home'))
     return render_template('login.html', title="Login")
 
-@app.route('/signup', methods=['GET', 'POST'])
-def signup():
+@app.route('/register', methods=['GET', 'POST'])
+def register():
     # Placeholder logic for signup
-    return render_template('signup.html', title="Sign Up")
+    return render_template('register.html', title="Sign Up")
 
 @app.route('/dashboard')
 def dashboard():

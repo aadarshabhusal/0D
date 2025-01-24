@@ -128,3 +128,14 @@ button:hover {
         padding: 12px 20px;
     }
 }
+
+.sponsor-logo {
+    max-height: 100px;
+    filter: grayscale(80%) opacity(70%);
+    transition: all 0.3s ease;
+  }
+  
+  .sponsor-logo:hover {
+    filter: grayscale(0%) opacity(100%);
+    transform: scale(1.05);
+  }

@@ -62,7 +62,7 @@
             <li class="nav-item"><a class="nav-link" href="{{ url_for('logout') }}">Logout</a></li>
           {% else %}
             <li class="nav-item"><a class="nav-link {% if request.endpoint == 'login' %}active{% endif %}" href="{{ url_for('login') }}">Login</a></li>
-            <li class="nav-item"><a class="nav-link {% if request.endpoint == 'signup' %}active{% endif %}" href="{{ url_for('signup') }}">Sign Up</a></li>
+            <li class="nav-item"><a class="nav-link {% if request.endpoint == 'register' %}active{% endif %}" href="{{ url_for('register') }}">Register</a></li>
           {% endif %}
         </ul>
       </div>
@@ -74,31 +74,33 @@
     {% block body %}{% endblock body %}
   </div>
 
-  <!-- Sponsors Section -->
-  <div class="bg-light py-4">
-    <div class="container">
-      <h5 class="text-center fw-bold mb-4">Our Sponsors</h5>
-      <div id="sponsorsCarousel" class="carousel slide" data-bs-ride="carousel">
-        <div class="carousel-inner">
-          <div class="carousel-item active">
-            <div class="d-flex justify-content-center">
-              <img src="{{ url_for('static', filename='sponsor1.png') }}" class="mx-3" width="150" alt="Sponsor 1">
-              <img src="{{ url_for('static', filename='sponsor2.png') }}" class="mx-3" width="150" alt="Sponsor 2">
-              <img src="{{ url_for('static', filename='sponsor3.png') }}" class="mx-3" width="150" alt="Sponsor 3">
-            </div>
-          </div>
-          <div class="carousel-item">
-            <div class="d-flex justify-content-center">
-              <img src="{{ url_for('static', filename='sponsor4.png') }}" class="mx-3" width="150" alt="Sponsor 4">
-              <img src="{{ url_for('static', filename='sponsor5.png') }}" class="mx-3" width="150" alt="Sponsor 5">
-              <img src="{{ url_for('static', filename='sponsor6.png') }}" class="mx-3" width="150" alt="Sponsor 6">
-            </div>
-          </div>
-        </div>
+<!-- Partners & Sponsors Section -->
+<section class="bg-white py-5">
+  <div class="container">
+    <div class="text-center mb-5">
+      <h2 class="fw-bold">Our Strategic Partners</h2>
+      <p class="text-muted">Collaborating with industry leaders to drive innovation</p>
+    </div>
+    
+    <div class="row justify-content-center align-items-center">
+      <div class="col-md-2 col-4 mb-4 text-center">
+        <img src="{{ url_for('static', filename='sponsor-tech-innovators.png') }}" class="img-fluid sponsor-logo" alt="Tech Innovators Inc.">
+      </div>
+      <div class="col-md-2 col-4 mb-4 text-center">
+        <img src="{{ url_for('static', filename='sponsor-global-logistics.png') }}" class="img-fluid sponsor-logo" alt="Global Logistics Solutions">
+      </div>
+      <div class="col-md-2 col-4 mb-4 text-center">
+        <img src="{{ url_for('static', filename='sponsor-supply-chain-network.png') }}" class="img-fluid sponsor-logo" alt="Supply Chain Network">
+      </div>
+      <div class="col-md-2 col-4 mb-4 text-center">
+        <img src="{{ url_for('static', filename='sponsor-warehouse-tech.png') }}" class="img-fluid sponsor-logo" alt="Warehouse Technologies">
+      </div>
+      <div class="col-md-2 col-4 mb-4 text-center">
+        <img src="{{ url_for('static', filename='sponsor-data-insights.png') }}" class="img-fluid sponsor-logo" alt="Data Insights Corp">
       </div>
     </div>
   </div>
-
+</section>
   <!-- Footer -->
   <footer class="bg-dark text-light py-5">
     <div class="container">
