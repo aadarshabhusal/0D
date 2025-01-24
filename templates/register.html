@@ -1,15 +1,36 @@
 {% extends 'layout.html' %}
+
 {% block body %}
 <div class="container mt-5 pt-4">
     <div class="row justify-content-center">
         <div class="col-md-8 col-lg-6">
             <div class="card shadow-lg border-0">
                 <div class="card-header bg-gradient-primary text-white text-center">
-                    <h2 class="mb-0">Business Registration</h2>
-                    <small class="text-light">Join our Inventory Business Platform</small>
+                    <h2 class="mb-0" style="color: #ffffff;">Business Registration</h2>
+                    <small class="text-light" style="color: #e5e5e5;">Join our Inventory Business Platform</small>
                 </div>
                 <div class="card-body">
                     <form id="businessRegistrationForm" method="POST" action="{{ url_for('register') }}">
+                        <!-- User Information -->
+                        <div class="mb-3">
+                            <label for="username" class="form-label">Username *</label>
+                            <input type="text" class="form-control" id="username" name="username" placeholder="e.g., johndoe123" required>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="password" class="form-label">Password *</label>
+                                <input type="password" class="form-control" id="password" name="password" placeholder="Enter password" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="confirmPassword" class="form-label">Confirm Password *</label>
+                                <input type="password" class="form-control" id="confirmPassword" name="confirm_password" placeholder="Confirm password" required>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="contactEmail" class="form-label">Email Address *</label>
+                            <input type="email" class="form-control" id="contactEmail" name="contact_email" placeholder="e.g., johndoe@example.com" required>
+                        </div>
+
                         <!-- Business Details -->
                         <div class="row">
                             <div class="col-md-6 mb-3">
@@ -81,7 +102,7 @@
                         
                         <!-- Terms -->
                         <div class="mb-3 form-check">
-                            <input type="checkbox" class="form-check-input" id="termsCheck" required>
+                            <input type="checkbox" class="form-check-input" id="termsCheck" name="termsCheck" required>
                             <label class="form-check-label" for="termsCheck">I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a> *</label>
                         </div>
                         
@@ -90,6 +111,18 @@
                             <button type="submit" class="btn btn-primary btn-lg">Register Business</button>
                         </div>
                     </form>
+
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            <div>
+                                {% for category, message in messages %}
+                                    <div class="alert alert-{{ category }} mt-3">
+                                        {{ message }}
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    {% endwith %}
                 </div>
             </div>
         </div>

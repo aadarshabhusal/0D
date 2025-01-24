@@ -55,7 +55,6 @@
           <li class="nav-item"><a class="nav-link {% if request.endpoint == 'item_tracking' %}active{% endif %}" href="{{ url_for('item_tracking') }}">Item Tracking</a></li>
           <li class="nav-item"><a class="nav-link {% if request.endpoint == 'waste_management' %}active{% endif %}" href="{{ url_for('waste_management') }}">Waste Management</a></li>
           <li class="nav-item"><a class="nav-link {% if request.endpoint == 'marketplace' %}active{% endif %}" href="{{ url_for('marketplace') }}">Marketplace</a></li>
-          <li class="nav-item"><a class="nav-link {% if request.endpoint == 'contact' %}active{% endif %}" href="{{ url_for('contact') }}">Contact Us</a></li>
 
           {% if 'user' in session %}
             <li class="nav-item"><a class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}" href="{{ url_for('dashboard') }}">Dashboard</a></li>
@@ -68,11 +67,27 @@
       </div>
     </div>
   </nav>
-
-  <!-- Content Block -->
-  <div class="mt-5 pt-4">
-    {% block body %}{% endblock body %}
+<!-- Content Block -->
+<div class="mt-5 pt-4">
+  <!-- Flash Messages -->
+  <div class="container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="alert-container">
+          {% for category, message in messages %}
+            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+              {{ message }}
+              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
   </div>
+  
+  {% block body %}
+  {% endblock body %}
+</div>
 
 <!-- Partners & Sponsors Section -->
 <section class="bg-white py-5">
