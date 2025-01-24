@@ -55,6 +55,8 @@
           <li class="nav-item"><a class="nav-link {% if request.endpoint == 'item_tracking' %}active{% endif %}" href="{{ url_for('item_tracking') }}">Item Tracking</a></li>
           <li class="nav-item"><a class="nav-link {% if request.endpoint == 'waste_management' %}active{% endif %}" href="{{ url_for('waste_management') }}">Waste Management</a></li>
           <li class="nav-item"><a class="nav-link {% if request.endpoint == 'marketplace' %}active{% endif %}" href="{{ url_for('marketplace') }}">Marketplace</a></li>
+          <li class="nav-item"><a class="nav-link {% if request.endpoint == 'contact' %}active{% endif %}" href="{{ url_for('contact') }}">Contact Us</a></li>
+
           {% if 'user' in session %}
             <li class="nav-item"><a class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}" href="{{ url_for('dashboard') }}">Dashboard</a></li>
             <li class="nav-item"><a class="nav-link" href="{{ url_for('logout') }}">Logout</a></li>
