@@ -19,6 +19,11 @@ def item_tracking():
 def waste_management():
     return render_template('waste_management.html', title="Waste Management")
 
+
+@app.route('/aboutUs')
+def about_page():
+    return render_template('about_page.html', title="About Us")
+
 @app.route('/marketplace')
 def marketplace():
     return render_template('marketplace.html', title="Marketplace")
