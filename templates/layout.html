@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- SEO Meta Tags -->
+  <meta name="description" content="An innovative inventory business platform connecting businesses with warehousing, tracking, waste management, and logistics solutions.">
+  <meta name="keywords" content="inventory platform, warehousing, item tracking, waste management, logistics, business optimization">
+  <meta name="author" content="Team 0D">
+
+  <!-- Open Graph Meta Tags for Social Media Sharing -->
+  <meta property="og:title" content="Inventory Business Platform">
+  <meta property="og:description" content="Connecting businesses with optimized logistics and disaster management solutions.">
+  <meta property="og:image" content="{{ url_for('static', filename='logo.png') }}">
+  <meta property="og:url" content="{{ url_for('home', _external=True) }}">
+  <meta property="og:type" content="website">
+
+  <!-- Twitter Card Meta Tags -->
+  <meta name="twitter:title" content="Inventory Business Platform">
+  <meta name="twitter:description" content="Innovative solutions for warehousing, tracking, and waste management.">
+  <meta name="twitter:image" content="{{ url_for('static', filename='logo.png') }}">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <title>{% block title %}{{ title }} - Inventory Business Platform{% endblock title %}</title>
+
+  <!-- External CSS and Bootstrap -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- Favicon -->
+  <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
+</head>
+
+<body>
+  <!-- Navigation Bar -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm fixed-top">
+    <div class="container">
+      <a class="navbar-brand d-flex align-items-center" href="{{ url_for('home') }}">
+        <img src="{{ url_for('static', filename='logo.png') }}" width="35" height="35" class="me-2 rounded-circle" alt="Logo">
+        <strong>Inventory Platform</strong>
+      </a>
+
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item"><a class="nav-link {% if request.endpoint == 'home' %}active{% endif %}" href="{{ url_for('home') }}">Home</a></li>
+          <li class="nav-item"><a class="nav-link {% if request.endpoint == 'warehouses' %}active{% endif %}" href="{{ url_for('warehouses') }}">Warehouses</a></li>
+          <li class="nav-item"><a class="nav-link {% if request.endpoint == 'item_tracking' %}active{% endif %}" href="{{ url_for('item_tracking') }}">Item Tracking</a></li>
+          <li class="nav-item"><a class="nav-link {% if request.endpoint == 'waste_management' %}active{% endif %}" href="{{ url_for('waste_management') }}">Waste Management</a></li>
+          <li class="nav-item"><a class="nav-link {% if request.endpoint == 'marketplace' %}active{% endif %}" href="{{ url_for('marketplace') }}">Marketplace</a></li>
+          {% if 'user' in session %}
+            <li class="nav-item"><a class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}" href="{{ url_for('dashboard') }}">Dashboard</a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('logout') }}">Logout</a></li>
+          {% else %}
+            <li class="nav-item"><a class="nav-link {% if request.endpoint == 'login' %}active{% endif %}" href="{{ url_for('login') }}">Login</a></li>
+            <li class="nav-item"><a class="nav-link {% if request.endpoint == 'signup' %}active{% endif %}" href="{{ url_for('signup') }}">Sign Up</a></li>
+          {% endif %}
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Content Block -->
+  <div class="mt-5 pt-4">
+    {% block body %}{% endblock body %}
+  </div>
+
+  <!-- Sponsors Section -->
+  <div class="bg-light py-4">
+    <div class="container">
+      <h5 class="text-center fw-bold mb-4">Our Sponsors</h5>
+      <div id="sponsorsCarousel" class="carousel slide" data-bs-ride="carousel">
+        <div class="carousel-inner">
+          <div class="carousel-item active">
+            <div class="d-flex justify-content-center">
+              <img src="{{ url_for('static', filename='sponsor1.png') }}" class="mx-3" width="150" alt="Sponsor 1">
+              <img src="{{ url_for('static', filename='sponsor2.png') }}" class="mx-3" width="150" alt="Sponsor 2">
+              <img src="{{ url_for('static', filename='sponsor3.png') }}" class="mx-3" width="150" alt="Sponsor 3">
+            </div>
+          </div>
+          <div class="carousel-item">
+            <div class="d-flex justify-content-center">
+              <img src="{{ url_for('static', filename='sponsor4.png') }}" class="mx-3" width="150" alt="Sponsor 4">
+              <img src="{{ url_for('static', filename='sponsor5.png') }}" class="mx-3" width="150" alt="Sponsor 5">
+              <img src="{{ url_for('static', filename='sponsor6.png') }}" class="mx-3" width="150" alt="Sponsor 6">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="bg-dark text-light py-5">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-4">
+          <h5>About Us</h5>
+          <p>An innovative platform for optimizing inventory management and disaster resource allocation.</p>
+        </div>
+        <div class="col-md-4">
+          <h5>Quick Links</h5>
+          <ul class="list-unstyled">
+            <li><a href="{{ url_for('home') }}" class="text-light">Home</a></li>
+            <li><a href="{{ url_for('warehouses') }}" class="text-light">Warehouses</a></li>
+            <li><a href="{{ url_for('item_tracking') }}" class="text-light">Item Tracking</a></li>
+            <li><a href="{{ url_for('marketplace') }}" class="text-light">Marketplace</a></li>
+          </ul>
+        </div>
+        <div class="col-md-4">
+          <h5>Contact Us</h5>
+          <p>Email: support@inventoryplatform.com</p>
+          <p>Phone: +977 123-456-7890</p>
+          <div class="d-flex">
+            <a href="#" class="text-light me-3"><i class="bi bi-facebook"></i></a>
+            <a href="#" class="text-light me-3"><i class="bi bi-twitter"></i></a>
+            <a href="#" class="text-light"><i class="bi bi-linkedin"></i></a>
+          </div>
+        </div>
+      </div>
+      <hr class="bg-light">
+      <div class="text-center">&copy; 2025 Inventory Business Platform. All Rights Reserved.</div>
+    </div>
+  </footer>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
+</body>
+
+</html>
