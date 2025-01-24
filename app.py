@@ -28,6 +28,10 @@ def about_page():
 def marketplace():
     return render_template('marketplace.html', title="Marketplace")
 
+@app.route('/contact')
+def contact():
+    return render_template('contact.html', title="Contact")
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     # Placeholder logic for login
