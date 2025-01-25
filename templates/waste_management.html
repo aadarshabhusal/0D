@@ -1,0 +1,102 @@
+{% extends "layout.html" %}
+
+{% block body %}
+<div class="container-fluid  bg-light">
+  <!-- Hero Section -->
+  <section class="text-center bg-primary text-white full-height">
+    <div class="container">
+      <h1 class="display-4 fw-bold">Waste Management</h1>
+      <p class="lead">
+        Driving sustainability by transforming waste into valuable resources. Discover our innovative approach to waste-to-business solutions.
+      </p>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section class=" full-height">
+    <div class="container">
+      <div class="row text-center">
+        <div class="col-md-4">
+          <div class="card border-0 shadow-sm">
+            <div class="card-body">
+              <i class="fas fa-recycle fa-4x text-success mb-3"></i>
+              <h4 class="fw-bold">Waste-to-Business Model</h4>
+              <p>We believe in transforming waste into business opportunities by reusing, repurposing, or collaborating with other industries.</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card border-0 shadow-sm">
+            <div class="card-body">
+              <i class="fas fa-industry fa-4x text-info mb-3"></i>
+              <h4 class="fw-bold">Recycling and Repurposing</h4>
+              <p>Converting waste materials into new products or collaborating with sectors like education to ensure no waste goes unused.</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card border-0 shadow-sm">
+            <div class="card-body">
+              <i class="fas fa-handshake fa-4x text-warning mb-3"></i>
+              <h4 class="fw-bold">Collaborations with Universities</h4>
+              <p>We partner with schools and universities, providing architecture students with valuable materials like cartons and thermocol for their projects.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Available Waste Materials -->
+  <section class=" bg-white full-height">
+    <div class="container">
+      <h2 class="text-center text-primary fw-bold mb-5">Available Waste Materials</h2>
+      <div class="table-responsive">
+        <table class="table table-hover table-striped">
+          <thead class="bg-primary text-white">
+            <tr>
+              <th>#</th>
+              <th>Material</th>
+              <th>Description</th>
+              <th>Quantity</th>
+              <th>Request</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1</td>
+              <td>Cartons</td>
+              <td>Reusable cardboard boxes for packaging or storage.</td>
+              <td>500 units</td>
+              <td>
+                <button class="btn btn-sm btn-success">Request Now</button>
+              </td>
+            </tr>
+            <tr>
+              <td>2</td>
+              <td>Thermocol</td>
+              <td>Recycled thermocol sheets for insulation or craft projects.</td>
+              <td>200 sheets</td>
+              <td>
+                <button class="btn btn-sm btn-success">Request Now</button>
+              </td>
+            </tr>
+            <!-- Additional materials can be added dynamically -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Call to Action -->
+  <section class=" bg-dark text-white full-height">
+    <div class="container text-center">
+      <h3 class="fw-bold mb-4">Ready to Partner with Us?</h3>
+      <p class="lead">
+        Join our network of businesses working together for a sustainable future. Collaborate, innovate, and create opportunities with waste management.
+      </p>
+      <a href="{{ url_for('contact') }}" class="btn btn-lg btn-primary">Contact Us Today</a>
+    </div>
+  </section>
+</div>
+{% endblock body %}
