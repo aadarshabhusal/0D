@@ -139,14 +139,96 @@ def warehouses():
     )
 
 
+@app.route('/logistics', methods=['GET', 'POST'])
+def item_tracking():
+    # Load districts from warehouse data
+    fixed_warehouse = pd.read_csv('fixed_warehouse.csv')
+    districts = fixed_warehouse['District'].unique().tolist()
+
+    if request.method == 'POST':
+        try:
+            # Extract form data
+            delivery_district = request.form.get('delivery_district')
+            product_quantity = float(request.form.get('product_quantity', 0))
+            product_weight = float(request.form.get('product_weight', 0))
+
+            # Find delivery location coordinates
+            delivery_location = fixed_warehouse[fixed_warehouse['District'] == delivery_district].iloc[0]
+            
+            # Calculate nearest warehouse (excluding current district)
+            other_warehouses = fixed_warehouse[fixed_warehouse['District'] != delivery_district]
+            
+            # Calculate distances to other warehouses
+            other_warehouses['Distance'] = other_warehouses.apply(
+                lambda row: haversine(
+                    (row['Latitude'], row['Longitude']), 
+                    (delivery_location['Latitude'], delivery_location['Longitude']), 
+                    unit=Unit.KILOMETERS
+                ), 
+                axis=1
+            )
+
+            # Find nearest warehouse
+            nearest_warehouse = other_warehouses.loc[other_warehouses['Distance'].idxmin()]
+
+            # Comprehensive logistics calculations
+            estimated_distance = nearest_warehouse['Distance']
+            base_delivery_rate = 50  # NPR per km base rate
+            weight_rate = 10  # Additional NPR per kg
+            quantity_rate = 5  # Additional NPR per unit
+
+            # Detailed cost breakdown
+            distance_cost = estimated_distance * base_delivery_rate
+            weight_cost = product_weight * weight_rate
+            quantity_cost = product_quantity * quantity_rate
+
+            total_delivery_cost = distance_cost + weight_cost + quantity_cost
+
+            # Estimated delivery time (consider road conditions, terrain)
+            avg_speed = 40  # km/h considering Nepalese terrain
+            estimated_time = estimated_distance / avg_speed
+
+            # Prepare route visualization data
+            route_details = {
+                'origin': {
+                    'lat': nearest_warehouse['Latitude'], 
+                    'lng': nearest_warehouse['Longitude'],
+                    'district': nearest_warehouse['District']
+                },
+                'destination': {
+                    'lat': delivery_location['Latitude'], 
+                    'lng': delivery_location['Longitude'],
+                    'district': delivery_district
+                }
+            }
+
+            return render_template('logistics.html', 
+                districts=districts,
+                map_key='AIzaSyBUembZbrAbmni90Rqwbd3drj5xBkRsF50',  # Your Google Maps API key
+                result={
+                    'nearest_warehouse': nearest_warehouse['District'],
+                    'delivery_district': delivery_district,
+                    'estimated_distance': round(estimated_distance, 2),
+                    'estimated_time': round(estimated_time, 2),
+                    'route_details': route_details,
+                    'cost_breakdown': {
+                        'distance_cost': round(distance_cost, 2),
+                        'weight_cost': round(weight_cost, 2),
+                        'quantity_cost': round(quantity_cost, 2),
+                        'total_cost': round(total_delivery_cost, 2)
+                    }
+                })
+
+        except Exception as e:
+            flash(f'Error processing logistics: {str(e)}', 'danger')
+            return render_template('logistics.html', districts=districts)
+
+    return render_template('logistics.html', districts=districts)
+
+
 @app.route('/')
 def home():
     return render_template('home.html', title="Home")
-
-
-@app.route('/item_tracking')
-def item_tracking():
-    return render_template('item_tracking.html', title="Item Tracking")
 
 
 @app.route('/waste_management')

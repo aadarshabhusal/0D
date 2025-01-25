@@ -1,0 +1,128 @@
+{% extends 'layout.html' %}
+{% block body %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-4 p-4 bg-light">
+            <h2 class="mb-4">Logistics Tracking</h2>
+            <form method="POST">
+                <div class="form-group mb-3">
+                    <label>Delivery District</label>
+                    <select name="delivery_district" class="form-control" required>
+                        {% for district in districts %}
+                        <option value="{{ district }}">{{ district }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group mb-3">
+                    <label>Product Quantity</label>
+                    <input type="number" name="product_quantity" class="form-control" required min="1">
+                </div>
+                <div class="form-group mb-3">
+                    <label>Product Weight (kg)</label>
+                    <input type="number" name="product_weight" class="form-control" required min="0">
+                </div>
+                <button type="submit" class="btn btn-primary w-100">Track Logistics</button>
+            </form>
+
+            {% if result %}
+            <div class="card mt-4">
+                <div class="card-header">Delivery Details</div>
+                <div class="card-body">
+                    <h5>Route Information</h5>
+                    <p><strong>Origin Warehouse:</strong> {{ result.nearest_warehouse }}</p>
+                    <p><strong>Destination District:</strong> {{ result.delivery_district }}</p>
+                    <p><strong>Estimated Distance:</strong> {{ result.estimated_distance }} km</p>
+                    <p><strong>Estimated Delivery Time:</strong> {{ result.estimated_time }} hours</p>
+                    
+                    <h5 class="mt-3">Cost Breakdown</h5>
+                    <table class="table table-sm">
+                        <tr>
+                            <td>Distance Cost:</td>
+                            <td>NPR {{ result.cost_breakdown.distance_cost }}</td>
+                        </tr>
+                        <tr>
+                            <td>Weight Cost:</td>
+                            <td>NPR {{ result.cost_breakdown.weight_cost }}</td>
+                        </tr>
+                        <tr>
+                            <td>Quantity Cost:</td>
+                            <td>NPR {{ result.cost_breakdown.quantity_cost }}</td>
+                        </tr>
+                        <tr class="table-primary">
+                            <td><strong>Total Delivery Cost:</strong></td>
+                            <td><strong>NPR {{ result.cost_breakdown.total_cost }}</strong></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="col-md-8 p-0">
+            <div id="map" style="height: 100vh; width: 100%;"></div>
+        </div>
+    </div>
+</div>
+
+<script src="https://maps.googleapis.com/maps/api/js?key={{ map_key }}&libraries=geometry"></script>
+<script>
+    {% if result %}
+    function initMap() {
+        // Create map centered on Nepal
+        const map = new google.maps.Map(document.getElementById('map'), {
+            center: { lat: 28.1667, lng: 84.2500 },
+            zoom: 7
+        });
+
+        // Origin (Warehouse) marker
+        const originMarker = new google.maps.Marker({
+            position: {
+                lat: {{ result.route_details.origin.lat }}, 
+                lng: {{ result.route_details.origin.lng }}
+            },
+            map: map,
+            title: '{{ result.route_details.origin.district }} Warehouse',
+            icon: 'http://maps.google.com/mapfiles/ms/icons/green-dot.png'
+        });
+
+        // Destination marker
+        const destinationMarker = new google.maps.Marker({
+            position: {
+                lat: {{ result.route_details.destination.lat }}, 
+                lng: {{ result.route_details.destination.lng }}
+            },
+            map: map,
+            title: '{{ result.route_details.destination.district }}',
+            icon: 'http://maps.google.com/mapfiles/ms/icons/red-dot.png'
+        });
+
+        // Directions Service
+        const directionsService = new google.maps.DirectionsService();
+        const directionsRenderer = new google.maps.DirectionsRenderer();
+        directionsRenderer.setMap(map);
+
+        // Request route
+        const request = {
+            origin: new google.maps.LatLng(
+                {{ result.route_details.origin.lat }}, 
+                {{ result.route_details.origin.lng }}
+            ),
+            destination: new google.maps.LatLng(
+                {{ result.route_details.destination.lat }}, 
+                {{ result.route_details.destination.lng }}
+            ),
+            travelMode: 'DRIVING'
+        };
+
+        directionsService.route(request, function(result, status) {
+            if (status == 'OK') {
+                directionsRenderer.setDirections(result);
+            }
+        });
+    }
+
+    // Initialize map when page loads
+    window.onload = initMap;
+    {% endif %}
+</script>
+{% endblock body %}
