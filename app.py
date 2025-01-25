@@ -42,7 +42,21 @@ class Business(db.Model):
 
     def __repr__(self):
         return f'<Business {self.business_name}>'
+class Admin(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(50), unique=True, nullable=False)
+    password_hash = db.Column(db.String(255), nullable=False)
 
+    def set_password(self, password):
+        self.password_hash = generate_password_hash(password)
+
+    def check_password(self, password):
+        return check_password_hash(self.password_hash, password)
+
+    def __repr__(self):
+        return f'<Admin {self.username}>'
+
+# Make sure to call create_default_admin during the application startup
 has_run_before = False
 
 @app.before_request
@@ -50,7 +64,18 @@ def initialize_database():
     global has_run_before
     if not has_run_before:
         db.create_all()
+        create_default_admin()  # Ensure that default admin is created
         has_run_before = True
+
+def create_default_admin():
+    # Check if there are no admin records
+    if not Admin.query.first():
+        admin = Admin(username='admin')  # Admin username
+        admin.set_password('admin123')  # Set a secure password
+        db.session.add(admin)
+        db.session.commit()
+        print('Default admin user created: admin/admin123')
+
 
 
 @app.route('/')
@@ -194,6 +219,49 @@ def logout():
     session.pop('user', None)
     flash('You have been logged out.', 'info')
     return redirect(url_for('home'))
+@app.route('/admin/login', methods=['GET', 'POST'])
+def admin_login():
+    form = LoginForm()
+    print(f"Form submitted: {request.method}")
+    print(f"Form valid: {form.validate_on_submit()}")
+
+    if request.method == 'POST':
+        username = form.username.data
+        password = form.password.data
+        print(f"Attempted login - Username: {username}")
+
+        admin = Admin.query.filter_by(username=username).first()
+        print(f"Admin found: {admin}")
+
+        if admin and admin.check_password(password):
+            session['admin'] = admin.id
+            print("Admin login successful")
+            flash('Admin login successful!', 'success')
+            return redirect(url_for('admin_dashboard'))
+        else:
+            print("Login failed")
+            flash('Invalid admin credentials. Please try again.', 'danger')
+
+    return render_template('admin_login.html', title="Admin Login", form=form)
+
+@app.route('/admin/dashboard')
+def admin_dashboard():
+    if 'admin' not in session:
+        flash('Please log in as an admin to access the dashboard.', 'warning')
+        return redirect(url_for('admin_login'))
+
+    # Fetch admin details
+    admin = Admin.query.get(session['admin'])
+
+    # Example: List all businesses for admin management
+    businesses = Business.query.all()
+
+    return render_template('admin_dashboard.html', title="Admin Dashboard", admin=admin, businesses=businesses)
+@app.route('/admin/logout')
+def admin_logout():
+    session.pop('admin', None)
+    flash('Admin logged out successfully.', 'info')
+    return redirect(url_for('admin_login'))
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
