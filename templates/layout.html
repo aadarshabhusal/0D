@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- SEO Meta Tags -->
+  <meta name="description" content="An innovative inventory business platform connecting businesses with warehousing, tracking, waste management, and logistics solutions.">
+  <meta name="keywords" content="inventory platform, warehousing, item tracking, waste management, logistics, business optimization">
+  <meta name="author" content="Team 0D">
+
+  <!-- Open Graph Meta Tags for Social Media Sharing -->
+  <meta property="og:title" content="Inventory Business Platform">
+  <meta property="og:description" content="Connecting businesses with optimized logistics and disaster management solutions.">
+  <meta property="og:image" content="{{ url_for('static', filename='logo.png') }}">
+  <meta property="og:url" content="{{ url_for('home', _external=True) }}">
+  <meta property="og:type" content="website">
+
+  <!-- Twitter Card Meta Tags -->
+  <meta name="twitter:title" content="Inventory Business Platform">
+  <meta name="twitter:description" content="Innovative solutions for warehousing, tracking, and waste management.">
+  <meta name="twitter:image" content="{{ url_for('static', filename='logo.png') }}">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <title>{% block title %}{{ title }} - Matrix {% endblock title %}</title>
+
+  <!-- External CSS and Bootstrap -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- Favicon -->
+  <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
+</head>
+
+<body>
+  <!-- Navigation Bar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm fixed-top">
+  <div class="container">
+    <a class="navbar-brand d-flex align-items-center" href="{{ url_for('home') }}">
+      <img src="{{ url_for('static', filename='logo.png') }}" width="35" height="35" class="me-2 rounded-circle" alt="Logo">
+      <strong>Matrix</strong>
+    </a>
+
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item"><a class="nav-link {% if request.endpoint == 'home' %}active{% endif %}" href="{{ url_for('home') }}">Home</a></li>
+        <li class="nav-item"><a class="nav-link {% if request.endpoint == 'warehouses' %}active{% endif %}" href="{{ url_for('warehouses') }}">Warehouses</a></li>
+        <li class="nav-item"><a class="nav-link {% if request.endpoint == 'item_tracking' %}active{% endif %}" href="{{ url_for('item_tracking') }}">Item Tracking</a></li>
+        <li class="nav-item"><a class="nav-link {% if request.endpoint == 'waste_management' %}active{% endif %}" href="{{ url_for('waste_management') }}">Waste Management</a></li>
+    
+        {% if 'admin' in session %}
+          <li class="nav-item"><a class="nav-link {% if request.endpoint == 'admin_dashboard' %}active{% endif %}" href="{{ url_for('admin_dashboard') }}">Admin Dashboard</a></li>
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('admin_logout') }}">Admin Logout</a></li>
+        {% elif 'user' in session %}
+          <li class="nav-item"><a class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}" href="{{ url_for('dashboard') }}">Dashboard</a></li>
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('logout') }}">Logout</a></li>
+        {% else %}
+          <li class="nav-item"><a class="nav-link {% if request.endpoint == 'login' %}active{% endif %}" href="{{ url_for('login') }}">Login</a></li>
+          <li class="nav-item"><a class="nav-link {% if request.endpoint == 'register' %}active{% endif %}" href="{{ url_for('register') }}">Register</a></li>
+          <li class="nav-item"><a class="nav-link {% if request.endpoint == 'admin_login' %}active{% endif %}" href="{{ url_for('admin_login') }}">Admin Login</a></li>
+        {% endif %}
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Content Block -->
+<div class="mt-5 pt-4">
+  <!-- Flash Messages -->
+  <div class="container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="alert-container">
+          {% for category, message in messages %}
+            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+              {{ message }}
+              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+  </div>
+  
+  {% block body %}
+  {% endblock body %}
+</div>
+
+<!-- Partners & Sponsors Section -->
+<section class="bg-white py-5">
+  <div class="container">
+    <div class="text-center mb-5">
+      <h2 class="fw-bold">Our Strategic Partners</h2>
+      <p class="text-muted">Collaborating with industry leaders to drive innovation</p>
+    </div>
+    
+    <div class="row justify-content-center align-items-center">
+      <div class="col-md-2 col-4 mb-4 text-center">
+        <img src="{{ url_for('static', filename='sponsor-tech-innovators.png') }}" class="img-fluid sponsor-logo" alt="Tech Innovators Inc.">
+      </div>
+      <div class="col-md-2 col-4 mb-4 text-center">
+        <img src="{{ url_for('static', filename='sponsor-global-logistics.png') }}" class="img-fluid sponsor-logo" alt="Global Logistics Solutions">
+      </div>
+      <div class="col-md-2 col-4 mb-4 text-center">
+        <img src="{{ url_for('static', filename='sponsor-supply-chain-network.png') }}" class="img-fluid sponsor-logo" alt="Supply Chain Network">
+      </div>
+      <div class="col-md-2 col-4 mb-4 text-center">
+        <img src="{{ url_for('static', filename='sponsor-warehouse-tech.png') }}" class="img-fluid sponsor-logo" alt="Warehouse Technologies">
+      </div>
+      <div class="col-md-2 col-4 mb-4 text-center">
+        <img src="{{ url_for('static', filename='sponsor-data-insights.png') }}" class="img-fluid sponsor-logo" alt="Data Insights Corp">
+      </div>
+    </div>
+  </div>
+</section>
+  <!-- Footer -->
+  <footer class="bg-dark text-light py-5">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-4">
+          <h5>About Us</h5>
+          <p>An innovative platform for optimizing inventory management and disaster resource allocation.</p>
+        </div>
+        <div class="col-md-4">
+          <h5>Quick Links</h5>
+          <ul class="list-unstyled">
+            <li><a href="{{ url_for('home') }}" class="text-light">Home</a></li>
+            <li><a href="{{ url_for('warehouses') }}" class="text-light">Warehouses</a></li>
+            <li><a href="{{ url_for('item_tracking') }}" class="text-light">Item Tracking</a></li>
+          </ul>
+        </div>
+        <div class="col-md-4">
+          <h5>Contact Us</h5>
+          <p>Email: support@inventoryplatform.com</p>
+          <p>Phone: +977 123-456-7890</p>
+          <div class="d-flex">
+            <a href="#" class="text-light me-3"><i class="bi bi-facebook"></i></a>
+            <a href="#" class="text-light me-3"><i class="bi bi-twitter"></i></a>
+            <a href="#" class="text-light"><i class="bi bi-linkedin"></i></a>
+          </div>
+        </div>
+      </div>
+      <hr class="bg-light">
+      <div class="text-center">&copy; 2025 Inventory Business Platform. All Rights Reserved.</div>
+    </div>
+  </footer>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
+</body>
+
+</html>

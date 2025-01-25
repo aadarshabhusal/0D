@@ -20,17 +20,17 @@
           
           <li class="nav-header">Inventory Management</li>
           <li class="nav-item">
-            <a class="nav-link" href="#">
+            <a class="nav-link" href="{{ url_for('admin_inventory') }}">
               <i class="fas fa-warehouse"></i> Warehouse Inventory
             </a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="#">
+            <a class="nav-link" href="{{ url_for('item_tracking') }}">
               <i class="fas fa-boxes"></i> Stock Tracking
             </a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="#">
+            <a class="nav-link" href="{{ url_for('waste_management') }}">
               <i class="fas fa-recycle"></i> Waste Management Logs
             </a>
           </li>
@@ -109,8 +109,9 @@
                 <td>{{ business.created_at.strftime('%Y-%m-%d') }}</td>
                 <td>
                   <div class="btn-group">
-                    <a href="#" class="btn btn-sm btn-info">View</a>
-                    <a href="#" class="btn btn-sm btn-warning">Edit</a>
+                    <a href="{{ url_for('view_business', business_id=business.id) }}" class="btn btn-sm btn-info">View</a>
+                    <a href="{{ url_for('edit_business', business_id=business.id) }}">Edit</a>
+
                   </div>
                 </td>
               </tr>
@@ -122,22 +123,4 @@
     </main>
   </div>
 </div>
-
-<style>
-.sidebar {
-  position: fixed;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  z-index: 100;
-  padding-top: 4rem;
-  box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
-}
-
-.nav-header {
-  padding: 0.5rem 1rem;
-  font-weight: bold;
-  color: #6c757d;
-}
-</style>
 {% endblock body %}

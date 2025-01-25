@@ -1,15 +1,25 @@
 from flask import Flask, render_template, redirect, flash, jsonify, request, url_for, session
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.utils import secure_filename
 from datetime import datetime
 from flask_wtf import FlaskForm
+from wtforms import StringField, PasswordField, SubmitField,IntegerField,FloatField,TextAreaField
+from wtforms.validators import DataRequired,NumberRange
 from wtforms import StringField, PasswordField, SubmitField
 from wtforms.validators import DataRequired
+import os
+import pandas as pd
+import pickle
+from haversine import haversine, Unit
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = '99875e40247d4d65b01363aa3db01cc2' 
+app.config['SECRET_KEY'] = '99875e40247d4d65b01363aa3db01cc2'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///business.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['UPLOAD_FOLDER'] = 'uploads'
+app.config['ALLOWED_EXTENSIONS'] = {'csv'}
+
 db = SQLAlchemy(app)
 
 class LoginForm(FlaskForm):
@@ -55,7 +65,29 @@ class Admin(db.Model):
 
     def __repr__(self):
         return f'<Admin {self.username}>'
+from flask_sqlalchemy import SQLAlchemy
+from datetime import datetime
 
+class Inventory(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    product_name = db.Column(db.String(100), nullable=False)
+    product_code = db.Column(db.String(50), unique=True, nullable=False)
+    category = db.Column(db.String(50), nullable=False)
+    quantity = db.Column(db.Integer, nullable=False, default=0)
+    unit_price = db.Column(db.Float, nullable=False)
+    total_value = db.Column(db.Float, nullable=False)
+    description = db.Column(db.Text, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    last_updated = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    business_id = db.Column(db.Integer, db.ForeignKey('business.id'), nullable=False)
+
+    def calculate_total_value(self):
+        """Calculate total value of inventory item"""
+        self.total_value = self.quantity * self.unit_price
+        return self.total_value
+
+    def __repr__(self):
+        return f'<Inventory {self.product_name} - {self.product_code}>'
 # Make sure to call create_default_admin during the application startup
 has_run_before = False
 
@@ -66,6 +98,95 @@ def initialize_database():
         db.create_all()
         create_default_admin()  # Ensure that default admin is created
         has_run_before = True
+
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
+
+
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
+
+@app.route('/warehouses', methods=['GET', 'POST'])
+def warehouses():
+    # Load prediction resources
+    with open('warehouse_model.pkl', 'rb') as f:
+        model_data = pickle.load(f)
+        model = model_data['model']
+        scaler = model_data['scaler']
+        warehouses = model_data['warehouses']
+    
+    fixed_warehouse = pd.read_csv('fixed_warehouse.csv')
+    show_prediction = False
+    result_warehouses = []
+
+    if request.method == 'POST':
+        if 'inventory_file' not in request.files:
+            flash('No file part', 'danger')
+            return redirect(request.url)
+        
+        file = request.files['inventory_file']
+        if file.filename == '':
+            flash('No selected file', 'danger')
+            return redirect(request.url)
+        
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            file.save(filepath)
+            
+            # Process prediction
+            new_data = pd.read_csv(filepath)
+            merged_data = pd.merge(
+                new_data,
+                fixed_warehouse[['District', 'Latitude', 'Longitude']],
+                on='District',
+                how='left'
+            )
+            clean_data = merged_data.dropna(subset=['Latitude', 'Longitude']).copy()
+
+            def calculate_distances(row):
+                return [
+                    haversine((row['Latitude'], row['Longitude']), 
+                              (wh['Latitude'], wh['Longitude']), unit=Unit.KILOMETERS)
+                    for _, wh in warehouses.iterrows()
+                ]
+
+            new_distances = clean_data.apply(calculate_distances, axis=1)
+            distance_df = pd.DataFrame(
+                new_distances.tolist(),
+                columns=warehouses['District']
+            )
+            scaled_data = scaler.transform(distance_df)
+            clean_data['Optimal Warehouse'] = [
+                warehouses.iloc[cluster]['District'] 
+                for cluster in model.predict(scaled_data)
+            ]
+
+            warehouse_counts = clean_data['Optimal Warehouse'].value_counts()
+            threshold = warehouse_counts.quantile(0.75)
+            significant_warehouses = warehouse_counts[warehouse_counts >= threshold].index.tolist()
+
+            result_warehouses = []
+            for warehouse_name in significant_warehouses:
+                warehouse_info = fixed_warehouse[fixed_warehouse['District'] == warehouse_name].iloc[0]
+                result_warehouses.append({
+                    'district': warehouse_name,
+                    'latitude': warehouse_info['Latitude'],
+                    'longitude': warehouse_info['Longitude'],
+                })
+
+            show_prediction = True
+            flash('Warehouse prediction completed successfully!', 'success')
+
+    return render_template(
+        'warehouses.html', 
+        title="Warehouses", 
+        warehouses=result_warehouses, 
+        show_prediction=show_prediction,
+        map_key='AIzaSyBUembZbrAbmni90Rqwbd3drj5xBkRsF50'  # Replace with your actual Google Maps API key
+    )
 
 def create_default_admin():
     # Check if there are no admin records
@@ -83,11 +204,6 @@ def home():
     return render_template('home.html', title="Home")
 
 
-@app.route('/warehouses')
-def warehouses():
-    return render_template('warehouses.html', title="Warehouses")
-
-
 @app.route('/item_tracking')
 def item_tracking():
     return render_template('item_tracking.html', title="Item Tracking")
@@ -102,10 +218,6 @@ def waste_management():
 def about_page():
     return render_template('about_page.html', title="About Us")
 
-
-@app.route('/marketplace')
-def marketplace():
-    return render_template('marketplace.html', title="Marketplace")
 
 
 @app.route('/contact')
@@ -262,6 +374,187 @@ def admin_logout():
     session.pop('admin', None)
     flash('Admin logged out successfully.', 'info')
     return redirect(url_for('admin_login'))
+
+class InventoryForm(FlaskForm):
+    product_name = StringField('Product Name', validators=[DataRequired()])
+    product_code = StringField('Product Code', validators=[DataRequired()])
+    category = StringField('Category', validators=[DataRequired()])
+    quantity = IntegerField('Quantity', validators=[DataRequired(), NumberRange(min=0)])
+    unit_price = FloatField('Unit Price', validators=[DataRequired(), NumberRange(min=0)])
+    description = TextAreaField('Description')
+
+@app.route('/admin/inventory', methods=['GET'])
+def admin_inventory():
+    if 'admin' not in session:
+        flash('Please log in as an admin to access inventory.', 'warning')
+        return redirect(url_for('admin_login'))
+
+    inventories = Inventory.query.all()
+    return render_template('admin_inventory.html', title="Inventory Management", inventories=inventories)
+@app.route('/admin/inventory/add', methods=['GET', 'POST'])
+def admin_add_inventory():
+    if 'admin' not in session:
+        flash('Please log in as an admin to access inventory.', 'warning')
+        return redirect(url_for('admin_login'))
+
+    form = InventoryForm()
+    if form.validate_on_submit():
+        try:
+            # Get the first business for demo purposes (you might want to adjust this)
+            business = Business.query.first()
+            
+            new_inventory = Inventory(
+                product_name=form.product_name.data,
+                product_code=form.product_code.data,
+                category=form.category.data,
+                quantity=form.quantity.data,
+                unit_price=form.unit_price.data,
+                description=form.description.data,
+                business_id=business.id
+            )
+            
+            # Calculate total value
+            new_inventory.calculate_total_value()
+            
+            db.session.add(new_inventory)
+            db.session.commit()
+            
+            flash('Inventory item added successfully!', 'success')
+            return redirect(url_for('admin_inventory'))
+        
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error adding inventory item: {str(e)}', 'danger')
+
+    return render_template('admin_add_inventory.html', title="Add Inventory", form=form)
+
+@app.route('/admin/inventory/edit/<int:inventory_id>', methods=['GET', 'POST'])
+def admin_edit_inventory(inventory_id):
+    if 'admin' not in session:
+        flash('Please log in as an admin to access inventory.', 'warning')
+        return redirect(url_for('admin_login'))
+
+    inventory_item = Inventory.query.get_or_404(inventory_id)
+    form = InventoryForm(obj=inventory_item)
+    
+    if form.validate_on_submit():
+        try:
+            form.populate_obj(inventory_item)
+            inventory_item.calculate_total_value()
+            
+            db.session.commit()
+            flash('Inventory item updated successfully!', 'success')
+            return redirect(url_for('admin_inventory'))
+        
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error updating inventory item: {str(e)}', 'danger')
+
+    return render_template('admin_edit_inventory.html', title="Edit Inventory", form=form, inventory=inventory_item)
+
+@app.route('/admin/inventory/delete/<int:inventory_id>', methods=['POST'])
+def admin_delete_inventory(inventory_id):
+    if 'admin' not in session:
+        flash('Please log in as an admin to access inventory.', 'warning')
+        return redirect(url_for('admin_login'))
+
+    inventory_item = Inventory.query.get_or_404(inventory_id)
+    
+    try:
+        db.session.delete(inventory_item)
+        db.session.commit()
+        flash('Inventory item deleted successfully!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error deleting inventory item: {str(e)}', 'danger')
+    
+    return redirect(url_for('admin_inventory'))
+@app.route('/admin/warehouse_inventory')
+def warehouse_inventory():
+    if 'admin' not in session:
+        flash('Please log in as an admin to access this page.', 'warning')
+        return redirect(url_for('admin_login'))
+    
+    # Fetch warehouse inventory data
+    inventory_items = Inventory.query.all()
+    return render_template('warehouse_inventory.html', title="Warehouse Inventory", inventory=inventory_items)
+
+@app.route('/admin/stock_tracking')
+def stock_tracking():
+    if 'admin' not in session:
+        flash('Please log in as an admin to access this page.', 'warning')
+        return redirect(url_for('admin_login'))
+    
+    # Stock tracking logic
+    stock_data = Inventory.query.all()
+    return render_template('stock_tracking.html', title="Stock Tracking", stock=stock_data)
+
+@app.route('/admin/waste_management_logs')
+def waste_management_logs():
+    if 'admin' not in session:
+        flash('Please log in as an admin to access this page.', 'warning')
+        return redirect(url_for('admin_login'))
+    
+    # Waste management logs logic
+    waste_logs = []  # Replace with actual data fetching logic
+    return render_template('waste_management_logs.html', title="Waste Management Logs", logs=waste_logs)
+
+@app.route('/admin/business_insights')
+def business_insights():
+    if 'admin' not in session:
+        flash('Please log in as an admin to access this page.', 'warning')
+        return redirect(url_for('admin_login'))
+    
+    # Fetch analytical data
+    insights = {}  # Replace with actual data fetching logic
+    return render_template('business_insights.html', title="Business Insights", insights=insights)
+
+@app.route('/admin/reports')
+def reports():
+    if 'admin' not in session:
+        flash('Please log in as an admin to access this page.', 'warning')
+        return redirect(url_for('admin_login'))
+    
+    # Generate and display reports
+    reports_data = []  # Replace with actual data fetching logic
+    return render_template('reports.html', title="Reports", reports=reports_data)
+@app.route('/business/<int:business_id>')
+def view_business(business_id):
+    if 'admin' not in session:
+        flash('Please log in as an admin to access this page.', 'warning')
+        return redirect(url_for('admin_login'))
+    
+    # Fetch business details based on business_id
+    business = Business.query.get(business_id)
+    if not business:
+        flash('Business not found.', 'danger')
+        return redirect(url_for('business_insights'))
+    
+    return render_template('view_business.html', business=business)
+@app.route('/business/edit/<int:business_id>', methods=['GET', 'POST'])
+def edit_business(business_id):
+    # Logic for editing a business
+    business = Business.query.get_or_404(business_id)
+    if request.method == 'POST':
+        business.name = request.form['name']
+        business.description = request.form['description']
+        db.session.commit()
+        flash('Business updated successfully!', 'success')
+        return redirect(url_for('view_business', business_id=business_id))
+    return render_template('edit_business.html', business=business)
+
+@app.route('/inventory', methods=['GET', 'POST'])
+def inventory():
+    form = InventoryForm()
+
+    if form.validate_on_submit():
+        # Handle form submission, save data, etc.
+        pass
+
+    return render_template('inventory_management.html', form=form)
+
+
+
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
