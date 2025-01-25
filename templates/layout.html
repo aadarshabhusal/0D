@@ -37,36 +37,41 @@
 
 <body>
   <!-- Navigation Bar -->
-  <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm fixed-top">
-    <div class="container">
-      <a class="navbar-brand d-flex align-items-center" href="{{ url_for('home') }}">
-        <img src="{{ url_for('static', filename='logo.png') }}" width="35" height="35" class="me-2 rounded-circle" alt="Logo">
-        <strong>4thMatrix</strong>
-      </a>
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm fixed-top">
+  <div class="container">
+    <a class="navbar-brand d-flex align-items-center" href="{{ url_for('home') }}">
+      <img src="{{ url_for('static', filename='logo.png') }}" width="35" height="35" class="me-2 rounded-circle" alt="Logo">
+      <strong>4thMatrix</strong>
+    </a>
 
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-      </button>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
 
-      <div class="collapse navbar-collapse" id="navbarNav">
-        <ul class="navbar-nav ms-auto">
-          <li class="nav-item"><a class="nav-link {% if request.endpoint == 'home' %}active{% endif %}" href="{{ url_for('home') }}">Home</a></li>
-          <li class="nav-item"><a class="nav-link {% if request.endpoint == 'warehouses' %}active{% endif %}" href="{{ url_for('warehouses') }}">Warehouses</a></li>
-          <li class="nav-item"><a class="nav-link {% if request.endpoint == 'item_tracking' %}active{% endif %}" href="{{ url_for('item_tracking') }}">Item Tracking</a></li>
-          <li class="nav-item"><a class="nav-link {% if request.endpoint == 'waste_management' %}active{% endif %}" href="{{ url_for('waste_management') }}">Waste Management</a></li>
-          <li class="nav-item"><a class="nav-link {% if request.endpoint == 'marketplace' %}active{% endif %}" href="{{ url_for('marketplace') }}">Marketplace</a></li>
-
-          {% if 'user' in session %}
-            <li class="nav-item"><a class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}" href="{{ url_for('dashboard') }}">Dashboard</a></li>
-            <li class="nav-item"><a class="nav-link" href="{{ url_for('logout') }}">Logout</a></li>
-          {% else %}
-            <li class="nav-item"><a class="nav-link {% if request.endpoint == 'login' %}active{% endif %}" href="{{ url_for('login') }}">Login</a></li>
-            <li class="nav-item"><a class="nav-link {% if request.endpoint == 'register' %}active{% endif %}" href="{{ url_for('register') }}">Register</a></li>
-          {% endif %}
-        </ul>
-      </div>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item"><a class="nav-link {% if request.endpoint == 'home' %}active{% endif %}" href="{{ url_for('home') }}">Home</a></li>
+        <li class="nav-item"><a class="nav-link {% if request.endpoint == 'warehouses' %}active{% endif %}" href="{{ url_for('warehouses') }}">Warehouses</a></li>
+        <li class="nav-item"><a class="nav-link {% if request.endpoint == 'item_tracking' %}active{% endif %}" href="{{ url_for('item_tracking') }}">Item Tracking</a></li>
+        <li class="nav-item"><a class="nav-link {% if request.endpoint == 'waste_management' %}active{% endif %}" href="{{ url_for('waste_management') }}">Waste Management</a></li>
+        <li class="nav-item"><a class="nav-link {% if request.endpoint == 'marketplace' %}active{% endif %}" href="{{ url_for('marketplace') }}">Marketplace</a></li>
+    
+        {% if 'admin' in session %}
+          <li class="nav-item"><a class="nav-link {% if request.endpoint == 'admin_dashboard' %}active{% endif %}" href="{{ url_for('admin_dashboard') }}">Admin Dashboard</a></li>
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('admin_logout') }}">Admin Logout</a></li>
+        {% elif 'user' in session %}
+          <li class="nav-item"><a class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}" href="{{ url_for('dashboard') }}">Dashboard</a></li>
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('logout') }}">Logout</a></li>
+        {% else %}
+          <li class="nav-item"><a class="nav-link {% if request.endpoint == 'login' %}active{% endif %}" href="{{ url_for('login') }}">Login</a></li>
+          <li class="nav-item"><a class="nav-link {% if request.endpoint == 'register' %}active{% endif %}" href="{{ url_for('register') }}">Register</a></li>
+          <li class="nav-item"><a class="nav-link {% if request.endpoint == 'admin_login' %}active{% endif %}" href="{{ url_for('admin_login') }}">Admin Login</a></li>
+        {% endif %}
+      </ul>
     </div>
-  </nav>
+  </div>
+</nav>
+
 <!-- Content Block -->
 <div class="mt-5 pt-4">
   <!-- Flash Messages -->
