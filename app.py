@@ -8,6 +8,7 @@ from wtforms import StringField, PasswordField, SubmitField
 from wtforms.validators import DataRequired
 import os
 import pandas as pd
+import numpy as np
 import pickle
 from haversine import haversine, Unit
 
@@ -53,6 +54,76 @@ class Business(db.Model):
 
 has_run_before = False
 
+def allocate_warehouse_sizes(warehouses):
+    """
+    Allocate warehouse sizes with bias towards major urban centers
+    
+    Size categories:
+    - Large: 10000-15000 sq meters
+    - Medium: 5000-10000 sq meters
+    - Small: 2000-5000 sq meters
+    """
+    # Define urban centers with higher warehouse potential
+    urban_centers = {
+        "Kathmandu": (15, "Large"),
+        "Pokhara": (12, "Large"),
+        "Lalitpur": (10, "Large"),
+        "Bhaktapur": (8, "Medium"),
+        "Morang": (7, "Medium"),
+        "Chitwan": (6, "Medium"),
+        "Sunsari": (5, "Medium"),
+        "Rupandehi": (5, "Medium")
+    }
+
+    # Add size allocation
+    warehouses_with_size = warehouses.copy()
+    warehouses_with_size['Warehouse_Size_Category'] = ''
+    warehouses_with_size['Warehouse_Size_Sqm'] = 0
+
+    for idx, row in warehouses_with_size.iterrows():
+        district = row['District']
+        
+        if district in urban_centers:
+            # Predefined sizes for urban centers
+            size_multiplier, size_category = urban_centers[district]
+            warehouse_size = np.random.randint(
+                size_multiplier * 1000, 
+                (size_multiplier + 2) * 1000
+            )
+        else:
+            # Randomized sizes for other districts
+            size_categories = ['Small', 'Medium', 'Small', 'Small']
+            size_category = np.random.choice(size_categories)
+            
+            # Random size ranges based on category
+            if size_category == 'Large':
+                warehouse_size = np.random.randint(10000, 15000)
+            elif size_category == 'Medium':
+                warehouse_size = np.random.randint(5000, 10000)
+            else:
+                warehouse_size = np.random.randint(2000, 5000)
+        
+        warehouses_with_size.at[idx, 'Warehouse_Size_Category'] = size_category
+        warehouses_with_size.at[idx, 'Warehouse_Size_Sqm'] = warehouse_size
+
+    return warehouses_with_size
+
+def convert_to_python_types(obj):
+    """
+    Recursively convert NumPy types to standard Python types
+    """
+    if isinstance(obj, np.integer):
+        return int(obj)
+    elif isinstance(obj, np.floating):
+        return float(obj)
+    elif isinstance(obj, np.ndarray):
+        return obj.tolist()
+    elif isinstance(obj, dict):
+        return {k: convert_to_python_types(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [convert_to_python_types(v) for v in obj]
+    return obj
+
 
 def allowed_file(filename):
     return '.' in filename and \
@@ -70,6 +141,7 @@ def warehouses():
     fixed_warehouse = pd.read_csv('fixed_warehouse.csv')
     show_prediction = False
     result_warehouses = []
+    significant_warehouses = []  # Initialize this variable
 
     if request.method == 'POST':
         if 'inventory_file' not in request.files:
@@ -131,25 +203,28 @@ def warehouses():
             threshold = warehouse_counts.quantile(0.75)
             significant_warehouses = warehouse_counts[warehouse_counts >= threshold].index.tolist()
 
-            # Prepare result warehouses with coordinates
-            result_warehouses = []
-            for warehouse_name in significant_warehouses:
-                warehouse_info = fixed_warehouse[fixed_warehouse['District'] == warehouse_name].iloc[0]
-                result_warehouses.append({
-                    'district': warehouse_name,
-                    'latitude': warehouse_info['Latitude'],
-                    'longitude': warehouse_info['Longitude'],
-                })
+            # Allocate warehouse sizes
+            warehouses_df = warehouses.copy()
+            warehouses_with_size = allocate_warehouse_sizes(warehouses_df)
 
-            show_prediction = True
-            flash('Warehouse prediction completed successfully!', 'success')
+            # Prepare result warehouses with coordinates and sizes
+            result_warehouses = []
+    for warehouse_name in significant_warehouses:
+        warehouse_info = warehouses_with_size[warehouses_with_size['District'] == warehouse_name].iloc[0]
+        result_warehouses.append({
+            'district': warehouse_name,
+            'latitude': convert_to_python_types(warehouse_info['Latitude']),
+            'longitude': convert_to_python_types(warehouse_info['Longitude']),
+            'size_category': warehouse_info['Warehouse_Size_Category'],
+            'size_sqm': convert_to_python_types(warehouse_info['Warehouse_Size_Sqm'])
+        })
 
     return render_template(
         'warehouses.html', 
         title="Warehouses", 
         warehouses=result_warehouses, 
         show_prediction=show_prediction,
-        map_key='AIzaSyBUembZbrAbmni90Rqwbd3drj5xBkRsF50'  # Replace with your actual Google Maps API key
+        map_key='AIzaSyBUembZbrAbmni90Rqwbd3drj5xBkRsF50'
     )
 
 

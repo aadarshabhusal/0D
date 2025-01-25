@@ -1,41 +1,39 @@
-{% extends 'layout.html' %}
+def convert_to_python_types(obj):
+    """
+    Recursively convert NumPy types to standard Python types
+    """
+    if isinstance(obj, np.integer):
+        return int(obj)
+    elif isinstance(obj, np.floating):
+        return float(obj)
+    elif isinstance(obj, np.ndarray):
+        return obj.tolist()
+    elif isinstance(obj, dict):
+        return {k: convert_to_python_types(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [convert_to_python_types(v) for v in obj]
+    return obj
 
-{% block body %}
-<div class="container mt-5">
-    <!-- Upload CSV Section -->
-    <div class="card mb-4 shadow-sm">
-        <div class="card-header bg-primary text-white">
-            <h4 class="mb-0">Optimize Warehouse Allocation</h4>
-        </div>
-        <div class="card-body">
-            <form method="POST" enctype="multipart/form-data" id="inventoryUploadForm">
-                <div class="row align-items-center">
-                    <div class="col-md-8">
-                        <div class="input-group">
-                            <input type="file" class="form-control" name="inventory_file" accept=".csv" required>
-                            <button class="btn btn-success" type="submit">
-                                <i class="bi bi-cloud-upload me-2"></i>Upload & Analyze
-                            </button>
-                        </div>
-                        <small class="text-muted d-block mt-2">
-                            Upload CSV with district-wise inventory data
-                        </small>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="alert alert-info p-2 small" role="alert">
-                            <i class="bi bi-info-circle me-2"></i>
-                            Our AI will predict the most optimal warehouses for your inventory.
-                        </div>
-                    </div>
-                </div>
-            </form>
-        </div>
-    </div>
+@app.route('/warehouses', methods=['GET', 'POST'])
+def warehouses():
+    # ... (previous code remains the same)
 
-    {% if show_prediction and warehouses %}
-    <!-- Existing prediction results section remains the same as in the previous warehouses.html -->
-    {% endif %}
-</div>
+    # Prepare result warehouses with coordinates and sizes
+    result_warehouses = []
+    for warehouse_name in significant_warehouses:
+        warehouse_info = warehouses_with_size[warehouses_with_size['District'] == warehouse_name].iloc[0]
+        result_warehouses.append({
+            'district': warehouse_name,
+            'latitude': convert_to_python_types(warehouse_info['Latitude']),
+            'longitude': convert_to_python_types(warehouse_info['Longitude']),
+            'size_category': warehouse_info['Warehouse_Size_Category'],
+            'size_sqm': convert_to_python_types(warehouse_info['Warehouse_Size_Sqm'])
+        })
 
-<!-- Existing modal and scripts remain the same -->
-{% endblock %}
+    return render_template(
+        'warehouses.html', 
+        title="Warehouses", 
+        warehouses=result_warehouses, 
+        show_prediction=show_prediction,
+        map_key='AIzaSyBUembZbrAbmni90Rqwbd3drj5xBkRsF50'
+    )
