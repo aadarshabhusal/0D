@@ -54,7 +54,6 @@
         <li class="nav-item"><a class="nav-link {% if request.endpoint == 'warehouses' %}active{% endif %}" href="{{ url_for('warehouses') }}">Warehouses</a></li>
         <li class="nav-item"><a class="nav-link {% if request.endpoint == 'item_tracking' %}active{% endif %}" href="{{ url_for('item_tracking') }}">Item Tracking</a></li>
         <li class="nav-item"><a class="nav-link {% if request.endpoint == 'waste_management' %}active{% endif %}" href="{{ url_for('waste_management') }}">Waste Management</a></li>
-        <li class="nav-item"><a class="nav-link {% if request.endpoint == 'marketplace' %}active{% endif %}" href="{{ url_for('marketplace') }}">Marketplace</a></li>
     
         {% if 'admin' in session %}
           <li class="nav-item"><a class="nav-link {% if request.endpoint == 'admin_dashboard' %}active{% endif %}" href="{{ url_for('admin_dashboard') }}">Admin Dashboard</a></li>
@@ -135,7 +134,6 @@
             <li><a href="{{ url_for('home') }}" class="text-light">Home</a></li>
             <li><a href="{{ url_for('warehouses') }}" class="text-light">Warehouses</a></li>
             <li><a href="{{ url_for('item_tracking') }}" class="text-light">Item Tracking</a></li>
-            <li><a href="{{ url_for('marketplace') }}" class="text-light">Marketplace</a></li>
           </ul>
         </div>
         <div class="col-md-4">
