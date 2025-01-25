@@ -72,64 +72,52 @@ def warehouses():
     result_warehouses = []
 
     if request.method == 'POST':
-        # Check if the post request has the file part
         if 'inventory_file' not in request.files:
             flash('No file part', 'danger')
             return redirect(request.url)
         
         file = request.files['inventory_file']
-        
-        # If no selected file
         if file.filename == '':
             flash('No selected file', 'danger')
             return redirect(request.url)
         
-        # If file and allowed
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
             filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
             file.save(filepath)
             
-            # Load new data
+            # Process prediction
             new_data = pd.read_csv(filepath)
-
-            # Merge coordinates (handle missing districts)
             merged_data = pd.merge(
                 new_data,
                 fixed_warehouse[['District', 'Latitude', 'Longitude']],
                 on='District',
                 how='left'
             )
-
-            # Remove rows with missing coordinates
             clean_data = merged_data.dropna(subset=['Latitude', 'Longitude']).copy()
 
-            # Calculate distances
             def calculate_distances(row):
                 return [
                     haversine((row['Latitude'], row['Longitude']), 
-                             (wh['Latitude'], wh['Longitude']), unit=Unit.KILOMETERS)
+                              (wh['Latitude'], wh['Longitude']), unit=Unit.KILOMETERS)
                     for _, wh in warehouses.iterrows()
                 ]
 
-            # Create distance matrix
             new_distances = clean_data.apply(calculate_distances, axis=1)
             distance_df = pd.DataFrame(
                 new_distances.tolist(),
                 columns=warehouses['District']
             )
-
-            # Scale features and predict
             scaled_data = scaler.transform(distance_df)
-            clean_data['Optimal Warehouse'] = [warehouses.iloc[cluster]['District'] 
-                                              for cluster in model.predict(scaled_data)]
+            clean_data['Optimal Warehouse'] = [
+                warehouses.iloc[cluster]['District'] 
+                for cluster in model.predict(scaled_data)
+            ]
 
-            # Get significant warehouses (top 25%)
             warehouse_counts = clean_data['Optimal Warehouse'].value_counts()
             threshold = warehouse_counts.quantile(0.75)
             significant_warehouses = warehouse_counts[warehouse_counts >= threshold].index.tolist()
 
-            # Prepare warehouse results for template
             result_warehouses = []
             for warehouse_name in significant_warehouses:
                 warehouse_info = fixed_warehouse[fixed_warehouse['District'] == warehouse_name].iloc[0]
@@ -147,7 +135,7 @@ def warehouses():
         title="Warehouses", 
         warehouses=result_warehouses, 
         show_prediction=show_prediction,
-        map_key='YOUR_GOOGLE_MAPS_API_KEY'  # Replace with your actual Google Maps API key
+        map_key='AIzaSyBUembZbrAbmni90Rqwbd3drj5xBkRsF50'  # Replace with your actual Google Maps API key
     )
 
 

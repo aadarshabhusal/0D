@@ -20,12 +20,39 @@
                 <h5>Predicted Warehouses:</h5>
                 <ul class="list-group">
                     {% for warehouse in warehouses %}
-                    <li class="list-group-item">{{ warehouse }}</li>
+                    <li class="list-group-item">{{ warehouse.district }}</li>
                     {% endfor %}
                 </ul>
+
+                <h5 class="mt-4">Warehouse Map:</h5>
+                <div id="map" style="height: 500px; width: 100%;"></div>
             </div>
             {% endif %}
         </div>
     </div>
 </div>
+
+<script src="https://maps.googleapis.com/maps/api/js?key={{ map_key }}"></script>
+<script>
+    function initMap() {
+        const center = { lat: 28.3949, lng: 84.1240 }; // Center of Nepal
+        const map = new google.maps.Map(document.getElementById("map"), {
+            zoom: 7,
+            center: center,
+        });
+
+        const warehouses = {{ warehouses|tojson }};
+        warehouses.forEach((warehouse) => {
+            new google.maps.Marker({
+                position: { lat: warehouse.latitude, lng: warehouse.longitude },
+                map: map,
+                title: warehouse.district,
+            });
+        });
+    }
+
+    {% if warehouses %}
+    initMap();
+    {% endif %}
+</script>
 {% endblock %}
