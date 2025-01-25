@@ -2,15 +2,15 @@
 
 {% block body %}
 <!-- Hero Section -->
-<section class="hero position-relative bg-primary text-white py-5 vh-100 d-flex align-items-center">
+<section class="hero position-relative py-5 vh-100 d-flex align-items-center bg-light" style="background-image: url('{{ url_for('static', filename='home.jpg') }}'); background-size: cover; background-position: center;">
+
   <div class="container position-relative z-1">
     <div class="row align-items-center">
       <div class="col-lg-8 mx-auto text-center">
-        <h1 class="display-4 mb-3 fw-bold">Intelligent Inventory Management</h1>
-        <p class="lead mb-4">Streamline your supply chain with cutting-edge technology and data-driven solutions.</p>
-        <div class="d-flex justify-content-center gap-3">
-          <a href="#about" class="btn btn-outline-light btn-lg">Discover Our Approach</a>
-          <a href="{{ url_for('contact') }}" class="btn btn-light btn-lg">Contact Us</a>
+        <h1 class="display-4 mb-3 fw-bold">MATRIX: Intelligent Inventory Management</h1>
+        <div class="d-flex justify-content-center gap-3 my-4">
+          <a href="#about" class="btn btn-dark btn-lg">Discover Our Approach</a>
+          <a href="{{ url_for('contact') }}" class="btn btn-primary btn-lg">Contact Us</a>
         </div>
       </div>
     </div>
@@ -27,14 +27,14 @@
           We deliver comprehensive inventory management solutions that transform complex supply chain challenges into strategic advantages. Our platform integrates advanced technologies to provide real-time insights, optimize operations, and drive business growth.
         </p>
         <ul class="list-unstyled mb-4">
-          <li class="mb-2"><i class="bi bi-check-circle text-primary me-2"></i>Data-Driven Decision Making</li>
-          <li class="mb-2"><i class="bi bi-check-circle text-primary me-2"></i>Scalable Infrastructure</li>
-          <li class="mb-2"><i class="bi bi-check-circle text-primary me-2"></i>Sustainable Practices</li>
+          <li class="mb-2"><i class=" bi-check-circle text-primary me-2"></i>Data-Driven Decision Making</li>
+          <li class="mb-2"><i class=" bi-check-circle text-primary me-2"></i>Scalable Infrastructure</li>
+          <li class="mb-2"><i class=" bi-check-circle text-primary me-2"></i>Sustainable Practices</li>
         </ul>
         <a href="{{ url_for('about_page') }}" class="btn btn-primary">Learn More About Us</a>
       </div>
       <div class="col-lg-6">
-        <img src="/static/images/inventory-team.jpg" alt="Inventory Management Team" class="img-fluid rounded shadow">
+        <img src="{{ url_for('static', filename='inventoryManage.jpg') }}" alt="Inventory Management Team" class="img-fluid rounded shadow">
       </div>
     </div>
   </div>
@@ -51,28 +51,28 @@
       <div class="col-md-3 text-center">
         <div class="service-item bg-light p-4 rounded h-100">
           <i class="bi bi-box-seam display-4 text-primary mb-3"></i>
-          <h4 class="mb-3">Advanced Warehousing</h4>
+          <h4 class="mb-3 text-dark">Advanced Warehousing</h4>
           <p class="text-muted">Intelligent storage solutions with state-of-the-art inventory tracking.</p>
         </div>
       </div>
       <div class="col-md-3 text-center">
         <div class="service-item bg-light p-4 rounded h-100">
           <i class="bi bi-truck display-4 text-primary mb-3"></i>
-          <h4 class="mb-3">Strategic Logistics</h4>
+          <h4 class="mb-3 text-dark">Strategic Logistics</h4>
           <p class="text-muted">Optimized routing and delivery to minimize costs and maximize efficiency.</p>
         </div>
       </div>
       <div class="col-md-3 text-center">
         <div class="service-item bg-light p-4 rounded h-100">
           <i class="bi bi-recycle display-4 text-primary mb-3"></i>
-          <h4 class="mb-3">Sustainable Management</h4>
+          <h4 class="mb-3 text-dark">Sustainable Management</h4>
           <p class="text-muted">Environmentally responsible waste reduction and circular economy practices.</p>
         </div>
       </div>
       <div class="col-md-3 text-center">
         <div class="service-item bg-light p-4 rounded h-100">
-          <i class="bi bi-geo-alt display-4 text-primary mb-3"></i>
-          <h4 class="mb-3">Real-Time Tracking</h4>
+          <i class="bi bi-geo-alt display-4 text-dark mb-3"></i>
+          <h4 class="mb-3 text-dark">Real-Time Tracking</h4>
           <p class="text-muted">End-to-end visibility with advanced tracking and analytics.</p>
         </div>
       </div>
