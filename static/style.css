@@ -139,4 +139,10 @@ button:hover {
     filter: grayscale(0%) opacity(100%);
     transform: scale(1.05);
   }
+  .full-height {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
   
