@@ -1,5 +1,31 @@
 {% extends 'layout.html' %}
-{% block body %}
 
-    
-{% endblock body %}
+{% block body %}
+<div class="container mt-5">
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            Warehouse Prediction
+        </div>
+        <div class="card-body">
+            <form method="POST" enctype="multipart/form-data">
+                <div class="mb-3">
+                    <label for="inventoryFile" class="form-label">Upload Inventory CSV</label>
+                    <input class="form-control" type="file" id="inventoryFile" name="inventory_file" accept=".csv" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Predict Warehouses</button>
+            </form>
+
+            {% if warehouses %}
+            <div class="mt-4">
+                <h5>Predicted Warehouses:</h5>
+                <ul class="list-group">
+                    {% for warehouse in warehouses %}
+                    <li class="list-group-item">{{ warehouse }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
