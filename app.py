@@ -88,13 +88,22 @@ def warehouses():
             
             # Process prediction
             new_data = pd.read_csv(filepath)
+            
+            # Comprehensive merger with fixed_warehouse
             merged_data = pd.merge(
                 new_data,
                 fixed_warehouse[['District', 'Latitude', 'Longitude']],
                 on='District',
                 how='left'
             )
+
+            # Check and remove rows with missing coordinates
             clean_data = merged_data.dropna(subset=['Latitude', 'Longitude']).copy()
+
+            # Validate merge
+            if clean_data.empty:
+                flash('No valid districts found in the uploaded file!', 'danger')
+                return redirect(request.url)
 
             def calculate_distances(row):
                 return [
@@ -103,21 +112,26 @@ def warehouses():
                     for _, wh in warehouses.iterrows()
                 ]
 
+            # Create distance matrix
             new_distances = clean_data.apply(calculate_distances, axis=1)
             distance_df = pd.DataFrame(
                 new_distances.tolist(),
                 columns=warehouses['District']
             )
+
+            # Scale and predict
             scaled_data = scaler.transform(distance_df)
             clean_data['Optimal Warehouse'] = [
                 warehouses.iloc[cluster]['District'] 
                 for cluster in model.predict(scaled_data)
             ]
 
+            # Get significant warehouses (top 25%)
             warehouse_counts = clean_data['Optimal Warehouse'].value_counts()
             threshold = warehouse_counts.quantile(0.75)
             significant_warehouses = warehouse_counts[warehouse_counts >= threshold].index.tolist()
 
+            # Prepare result warehouses with coordinates
             result_warehouses = []
             for warehouse_name in significant_warehouses:
                 warehouse_info = fixed_warehouse[fixed_warehouse['District'] == warehouse_name].iloc[0]
