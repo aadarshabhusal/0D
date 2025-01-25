@@ -1,15 +1,25 @@
 from flask import Flask, render_template, redirect, flash, jsonify, request, url_for, session
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.utils import secure_filename
 from datetime import datetime
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField,IntegerField,FloatField,TextAreaField
 from wtforms.validators import DataRequired,NumberRange
+from wtforms import StringField, PasswordField, SubmitField
+from wtforms.validators import DataRequired
+import os
+import pandas as pd
+import pickle
+from haversine import haversine, Unit
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = '99875e40247d4d65b01363aa3db01cc2'  # Use a secure key for production
+app.config['SECRET_KEY'] = '99875e40247d4d65b01363aa3db01cc2'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///business.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['UPLOAD_FOLDER'] = 'uploads'
+app.config['ALLOWED_EXTENSIONS'] = {'csv'}
+
 db = SQLAlchemy(app)
 
 class LoginForm(FlaskForm):
@@ -89,6 +99,95 @@ def initialize_database():
         create_default_admin()  # Ensure that default admin is created
         has_run_before = True
 
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
+
+
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
+
+@app.route('/warehouses', methods=['GET', 'POST'])
+def warehouses():
+    # Load prediction resources
+    with open('warehouse_model.pkl', 'rb') as f:
+        model_data = pickle.load(f)
+        model = model_data['model']
+        scaler = model_data['scaler']
+        warehouses = model_data['warehouses']
+    
+    fixed_warehouse = pd.read_csv('fixed_warehouse.csv')
+    show_prediction = False
+    result_warehouses = []
+
+    if request.method == 'POST':
+        if 'inventory_file' not in request.files:
+            flash('No file part', 'danger')
+            return redirect(request.url)
+        
+        file = request.files['inventory_file']
+        if file.filename == '':
+            flash('No selected file', 'danger')
+            return redirect(request.url)
+        
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            file.save(filepath)
+            
+            # Process prediction
+            new_data = pd.read_csv(filepath)
+            merged_data = pd.merge(
+                new_data,
+                fixed_warehouse[['District', 'Latitude', 'Longitude']],
+                on='District',
+                how='left'
+            )
+            clean_data = merged_data.dropna(subset=['Latitude', 'Longitude']).copy()
+
+            def calculate_distances(row):
+                return [
+                    haversine((row['Latitude'], row['Longitude']), 
+                              (wh['Latitude'], wh['Longitude']), unit=Unit.KILOMETERS)
+                    for _, wh in warehouses.iterrows()
+                ]
+
+            new_distances = clean_data.apply(calculate_distances, axis=1)
+            distance_df = pd.DataFrame(
+                new_distances.tolist(),
+                columns=warehouses['District']
+            )
+            scaled_data = scaler.transform(distance_df)
+            clean_data['Optimal Warehouse'] = [
+                warehouses.iloc[cluster]['District'] 
+                for cluster in model.predict(scaled_data)
+            ]
+
+            warehouse_counts = clean_data['Optimal Warehouse'].value_counts()
+            threshold = warehouse_counts.quantile(0.75)
+            significant_warehouses = warehouse_counts[warehouse_counts >= threshold].index.tolist()
+
+            result_warehouses = []
+            for warehouse_name in significant_warehouses:
+                warehouse_info = fixed_warehouse[fixed_warehouse['District'] == warehouse_name].iloc[0]
+                result_warehouses.append({
+                    'district': warehouse_name,
+                    'latitude': warehouse_info['Latitude'],
+                    'longitude': warehouse_info['Longitude'],
+                })
+
+            show_prediction = True
+            flash('Warehouse prediction completed successfully!', 'success')
+
+    return render_template(
+        'warehouses.html', 
+        title="Warehouses", 
+        warehouses=result_warehouses, 
+        show_prediction=show_prediction,
+        map_key='AIzaSyBUembZbrAbmni90Rqwbd3drj5xBkRsF50'  # Replace with your actual Google Maps API key
+    )
+
 def create_default_admin():
     # Check if there are no admin records
     if not Admin.query.first():
@@ -103,11 +202,6 @@ def create_default_admin():
 @app.route('/')
 def home():
     return render_template('home.html', title="Home")
-
-
-@app.route('/warehouses')
-def warehouses():
-    return render_template('warehouses.html', title="Warehouses")
 
 
 @app.route('/item_tracking')
@@ -458,5 +552,9 @@ def inventory():
         pass
 
     return render_template('inventory_management.html', form=form)
+
+
+
+
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)

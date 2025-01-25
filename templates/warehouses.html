@@ -1,5 +1,58 @@
 {% extends 'layout.html' %}
-{% block body %}
 
-    
-{% endblock body %}
+{% block body %}
+<div class="container mt-5">
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            Warehouse Prediction
+        </div>
+        <div class="card-body">
+            <form method="POST" enctype="multipart/form-data">
+                <div class="mb-3">
+                    <label for="inventoryFile" class="form-label">Upload Inventory CSV</label>
+                    <input class="form-control" type="file" id="inventoryFile" name="inventory_file" accept=".csv" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Predict Warehouses</button>
+            </form>
+
+            {% if warehouses %}
+            <div class="mt-4">
+                <h5>Predicted Warehouses:</h5>
+                <ul class="list-group">
+                    {% for warehouse in warehouses %}
+                    <li class="list-group-item">{{ warehouse.district }}</li>
+                    {% endfor %}
+                </ul>
+
+                <h5 class="mt-4">Warehouse Map:</h5>
+                <div id="map" style="height: 500px; width: 100%;"></div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script src="https://maps.googleapis.com/maps/api/js?key={{ map_key }}"></script>
+<script>
+    function initMap() {
+        const center = { lat: 28.3949, lng: 84.1240 }; // Center of Nepal
+        const map = new google.maps.Map(document.getElementById("map"), {
+            zoom: 7,
+            center: center,
+        });
+
+        const warehouses = {{ warehouses|tojson }};
+        warehouses.forEach((warehouse) => {
+            new google.maps.Marker({
+                position: { lat: warehouse.latitude, lng: warehouse.longitude },
+                map: map,
+                title: warehouse.district,
+            });
+        });
+    }
+
+    {% if warehouses %}
+    initMap();
+    {% endif %}
+</script>
+{% endblock %}
