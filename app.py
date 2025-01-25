@@ -7,7 +7,7 @@ from wtforms import StringField, PasswordField, SubmitField
 from wtforms.validators import DataRequired
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = '99875e40247d4d65b01363aa3db01cc2'  # Use a secure key for production
+app.config['SECRET_KEY'] = '99875e40247d4d65b01363aa3db01cc2' 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///business.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
